@@ -5,7 +5,7 @@ import 'react-datepicker/dist/react-datepicker.css'; // Datepicker styles
 import './search.css'; // Custom CSS
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
-
+import { FaPlane } from 'react-icons/fa';
 
 const SearchBar = () => {
   const [fromLocation, setFromLocation] = useState(null); // Store the selected "From" location
@@ -13,6 +13,8 @@ const SearchBar = () => {
   const [checkInDate, setCheckInDate] = useState(null); // Check-in date
   const [checkOutDate, setCheckOutDate] = useState(null); // Check-out date
   const [passengerCount, setPassengerCount] = useState(1); // Number of passengers
+  const [trip, setTrips] = useState(null); // trips
+  //const[isSearched, setSearchedState]=false;  
   
   const [isSearched, setIsSearched] = useState(false);
   const navigate = useNavigate();
@@ -20,11 +22,12 @@ const SearchBar = () => {
   
   useEffect(() => {
     if (location.state) {
-      const { fromLocation, destination, checkInDate, checkOutDate  } = location.state;
+      const { fromLocation, destination, checkInDate, checkOutDate, trip  } = location.state;
       setFromLocation(fromLocation);
       setDestination(destination);
       setCheckInDate(checkInDate);
       setCheckOutDate(checkOutDate);
+      setTrips(trip);
       
     }
   }, [location.state]);
@@ -33,7 +36,7 @@ const SearchBar = () => {
     setIsSearched(true);
     
     
-    if (fromLocation && destination && checkInDate && checkOutDate) {
+    if (fromLocation && destination && checkInDate && trip) {
       // Navigate to the results page
       navigate('/results', {
         state: {
@@ -51,19 +54,38 @@ const SearchBar = () => {
 
 
   const cities = [
-    { value: 'Islamabad', label: 'Islamabad' },
-    { value: 'Lahore', label: 'Lahore' },
-    { value: 'Karachi', label: 'Karachi' },
-    { value: 'Istanbul', label: 'Istanbul' }
+    { value: 'Islamabad', label: 'Islamabad', image: '/Assets/Images/emirates.jpg'},
+    { value: 'Lahore', label: 'Lahore', image: '/Assets/Images/emirates.jpg' },
+    { value: 'Karachi', label: 'Karachi', image: '/Assets/Images/emirates.jpg' },
+    { value: 'Istanbul', label: 'Istanbul', image: '/Assets/Images/emirates.jpg' }
+  ];
+
+  const trips = [
+    { value: 'oneway', label: 'One Way' },
+    { value: 'round', label: 'Round' },
+    { value: 'multicity', label: 'Multi City' }    
   ];
 
   
   return (
     <div className="search-bar">
+       
       <div className="search-bar-container">
-        
+
+      <div className="search-field">
+          <Select
+            options={trips}
+            value={trip}
+            onChange={setTrips}
+            placeholder="One-Way"
+            className="dropdown"
+          />
+        </div>
+         
+      
 
         <div className="search-field">
+        
           <Select
             options={cities}
             value={fromLocation}
@@ -84,7 +106,7 @@ const SearchBar = () => {
           />
         </div>
 
-        
+                 
         <div className="search-field">
           <DatePicker
             selected={checkInDate}

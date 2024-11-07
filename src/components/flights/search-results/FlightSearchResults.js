@@ -35,32 +35,66 @@ const FlightSearchResults = () => {
   ];
 
   return (
-    <div className="flight-search-results">
-      {/* Render SearchBar on results page */}
-      <SearchBar />
+    <>
 
-      <h2>Search Results</h2>
-      <div className="flight-details">
-        <p><strong>From:</strong> {fromLocation}</p>
-        <p><strong>Destination:</strong> {destination}</p>
-        <p><strong>Check-in Date:</strong> {checkInDate ? checkInDate.toDateString() : 'Not selected'}</p>
-        <p><strong>Check-out Date:</strong> {checkOutDate ? checkOutDate.toDateString() : 'Not selected'}</p>
+  <div>
+   {/* Render SearchBar on results page */}
+   <SearchBar />
+
+
+  </div>
+
+
+  <div className="flight-details">
+      
+  <div class="row">
+  <div class="col-sm">
+  <img className="image" src='Assets/Images/emirates.jpg' alt="My Image" />
+    </div>
+  <div class="col-sm">
+    <p>08:00</p>
+  <p><strong>{fromLocation} &nbsp; &nbsp; &nbsp;</strong>  ----------------------------</p>
+     
+    </div>
+  <div class="col-sm">
+    <p>14:00</p>
+  <p> <strong>{destination}</strong> </p>
+     
+  </div>
+
+  <div class="col-sm">
+  <button className="select-flight">Select Flight</button>
+  </div>
+  </div>
+
+  
+
+      
+      
+
+        
        
-      </div>
+        {/* <p><strong>Check-in Date:</strong> {checkInDate ? checkInDate.toDateString() : 'Not selected'}</p>
+        <p><strong>Check-out Date:</strong> {checkOutDate ? checkOutDate.toDateString() : 'Not selected'}</p>
+         */}
+      
 
-      <div className="flight-list">
+
+</div>
+       <div className="flight-list">
         {flights.map((flight, index) => (
           <div className="flight-item" key={index}>
             <h3>{flight.airline}</h3>
+            
             <p><strong>Price:</strong> {flight.price}</p>
             <p><strong>Duration:</strong> {flight.duration}</p>
-            <p><strong>Departure:</strong> {flight.departure}</p>
-            <p><strong>Arrival:</strong> {flight.arrival}</p>
+            <p><strong>Departure:</strong> {flight.departure}
+            <strong>Arrival:</strong> {flight.arrival}</p>
             <button className="select-flight">Select Flight</button>
           </div>
         ))}
-      </div>
-    </div>
+      </div> 
+    </>
   );
 };
 

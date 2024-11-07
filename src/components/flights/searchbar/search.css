@@ -69,6 +69,21 @@
   background-color: #007bb3;
 }
 
+.search-bar h2 {
+  font-size: 20px !important;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #009fe3;
+  text-align: center;
+}
+
 .search-bar-container.searched {
   background-color: yellowgreen /* Background color changes after search */
+}
+.select-trip
+{
+
+  display: flex;
+  flex-direction:column;
+  width:fit-content;
 }
