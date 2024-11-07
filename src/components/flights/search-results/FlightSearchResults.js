@@ -37,7 +37,7 @@ const FlightSearchResults = () => {
   return (
     <>
 
-  <div>
+  <div className='searchbar-result'>
    {/* Render SearchBar on results page */}
    <SearchBar />
 
