@@ -1,22 +1,29 @@
 import logo from './logo.svg';
 import './App.css';
-import Gallery from './components/gallery';
+
 import Header from './components/flights/header/header';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import SearchBar from './components/flights/searchbar/Search';
 import Results from './components/flights/search-results/FlightSearchResults';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import FlightSearchResults from './components/flights/search-results/FlightSearchResults';
+import { Provider } from 'react-redux';
+import store from './Redux/store';
+import Toolbar from './components/flights/header/Toolbar';
+import StaySearch from './components/flights/searchbar/StaySearch';
 
 const App = () => {
   return (
     <Router>
-      <div>
+      <Provider store={store}>
       <Header />
-      </div>
+      
+      </Provider>
+      <Toolbar />
+      <StaySearch />
       <Routes>
          
-        <Route path="/" element={<SearchBar />} />
+        {/* <Route path="/" element={<SearchBar />} /> */}
       
         <Route path="/results" element={<FlightSearchResults />} />
       </Routes>

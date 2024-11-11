@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Select from 'react-select'; // Import react-select for dropdowns
 import DatePicker from 'react-datepicker'; // Import DatePicker
 import 'react-datepicker/dist/react-datepicker.css'; // Datepicker styles
-import './results.css'; // Custom CSS
+import '../components/flights/search-results/results.css'; // Custom CSS
 
 const Results = () => {
   const [fromLocation, setFromLocation] = useState(null); // Store the selected "From" location
