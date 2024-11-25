@@ -12,7 +12,7 @@ import {
   FormControl,
   Stack,
 } from "@mui/material";
-import { Autocomplete } from "@mui/material";
+import { Autocomplete, styled, Chip } from "@mui/material";
 import MenuItem from '@mui/material/MenuItem';
 import PlaceIcon from "@mui/icons-material/Place";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
@@ -46,8 +46,9 @@ const useDebounce = (value, delay) => {
 
 const StaySearch = () => {
   const [destination, setToDestination] = useState(""); // for destination
-  const [from, setToFrom] = useState(""); // for from
-  
+  const [from, setToFrom] = useState([]);
+  const [fromText, setFromText] = useState(""); // for from
+
   const [trip, setTrip] = React.useState('One-Way');
   const [category, setCategory] = React.useState('Economy');
 
@@ -58,7 +59,10 @@ const StaySearch = () => {
   const [loading, setLoading] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [adults, setAdults] = useState(2);
+  const [adults, setAdults] = useState(0);
+  const [youth, setYouth] = useState(0);
+  const [toddlers, setToddlers] = useState(0);
+  const [infants, setInfants] = useState(0);
   const [children, setChildren] = useState(0);
   const [childrenAges, setChildrenAges] = useState([]); // Now an array
   const [rooms, setRooms] = useState(1);
@@ -66,8 +70,8 @@ const StaySearch = () => {
 
   const navigate = useNavigate();
   const debouncedDestination = useDebounce(destination, 500);
-  const debouncedFrom = useDebounce(from, 500);
-  
+  const debouncedFrom = useDebounce(fromText, 500);
+
 
   const handleChangeTrip = (event) => {
     setTrip(event.target.value);
@@ -82,55 +86,55 @@ const StaySearch = () => {
 
     debugger;
     const handleDestinationSearch = async () => {
-      if (!debouncedDestination ) {
+      if (!debouncedDestination) {
         setSearchData([]);
         return;
       }
 
-      
+
 
       setLoading(true);
 
-         
-        let   url ="https://booking-com15.p.rapidapi.com/api/v1/flights/searchDestination?query="
-         
-    
-    
-       try {
-        
 
-        
+      let url = "https://booking-com15.p.rapidapi.com/api/v1/flights/searchDestination?query="
+
+
+
+      try {
+
+
+
         const response = await axios.get(url + debouncedDestination
           ,
           {
-           
+
             headers: {
               'x-rapidapi-ua': 'RapidAPI-Playground',  // Replace with your actual value
               'x-rapidapi-key': '3dc42e8945msh78eeff0020f2fbep1b86aejsnbc7327f142ab', // Replace with your actual RapidAPI key
               'x-rapidapi-host': 'booking-com15.p.rapidapi.com', // Replace with the actual API host if different
-      
+
             },
           }
         );
         debugger;
 
-            setSearchData(response.data.data);
-        
-         
-        
+        setSearchData(response.data.data);
+
+
+
       } catch (error) {
-        
-            console.error("Error fetching destination data:", error);
-             setSearchData([]);
 
-        
-            
+        console.error("Error fetching destination data:", error);
+        setSearchData([]);
 
-              } finally {
+
+
+
+      } finally {
         setLoading(false);
       }
     };
-   
+
     const handleFromSearch = async () => {
 
       if (!debouncedFrom) {
@@ -140,54 +144,54 @@ const StaySearch = () => {
 
       setLoading(true);
 
-         
-       let    url ="https://booking-com15.p.rapidapi.com/api/v1/flights/searchDestination?query=" 
 
-       try {
-        
+      let url = "https://booking-com15.p.rapidapi.com/api/v1/flights/searchDestination?query="
 
-        
-        const response = await axios.get(url+debouncedFrom
+      try {
+
+
+
+        const response = await axios.get(url + debouncedFrom
           ,
           {
-           
+
             headers: {
               'x-rapidapi-ua': 'RapidAPI-Playground',  // Replace with your actual value
               'x-rapidapi-key': '3dc42e8945msh78eeff0020f2fbep1b86aejsnbc7327f142ab', // Replace with your actual RapidAPI key
               'x-rapidapi-host': 'booking-com15.p.rapidapi.com', // Replace with the actual API host if different
-      
+
             },
           }
         );
         debugger;
 
-        
-            setSearchFromData(response.data.data);
-        
-        
-      } catch (error) {
-        
-        
-            console.error("Error fetching From data:", error);
-            setSearchFromData([]);
-    
-        
 
-              } finally {
+        setSearchFromData(response.data.data);
+
+
+      } catch (error) {
+
+
+        console.error("Error fetching From data:", error);
+        setSearchFromData([]);
+
+
+
+      } finally {
         setLoading(false);
       }
     };
-   
+
 
     handleDestinationSearch();
     handleFromSearch()
-  }, [debouncedDestination,debouncedFrom]);
+  }, [debouncedDestination, debouncedFrom]);
 
 
-  
+
 
   const handleDestinationChange = (event, value) => {
-    setToDestination(value ? value.name : "");
+    setToDestination(value ? value.id : "");
     if (value) {
       setDestId(value.id); // Set dest_id from the selected destination
       setDestType(value.type); // Set dest_type from the selected destination
@@ -196,16 +200,21 @@ const StaySearch = () => {
 
 
   const handleFromChange = (event, value) => {
-    setToFrom(value ? value.name : "");
-    if (value) {
-      setDestId(value.id); // Set dest_id from the selected to
-      setDestType(value.type); // Set dest_type from the selected to
+    debugger;
+    if(value.length<=3)
+    {
+    setToFrom(value);
     }
   };
 
   const handleSearch = async () => {
-    if (!startDate || !endDate) {
+    if (!startDate) {
       alert("Please select both check-in and check-out dates.");
+      return;
+    }
+
+    if (children === 0 && adults === 0 && toddlers === 0 && infants === 0 && youth === 0) {
+      alert("Please select at least 1 Traveller.");
       return;
     }
 
@@ -213,25 +222,59 @@ const StaySearch = () => {
       alert("Please select a valid destination.");
       return;
     }
-
-    const checkinDate = formatDate(startDate);
-    const checkoutDate = formatDate(endDate);
+    if (from.length===0) {
+      alert("Please select a valid departure location.");
+      return;
+    }
+    debugger;
+    //let date=new Date(startDate)
+    const checkinDate = startDate //formatDate(date);
+    //  const checkoutDate = formatDate(endDate);
     const staticCurrency = "AED";
     const staticLocale = "en-gb";
 
+
+    const year = startDate.getFullYear();
+    const month = startDate.getMonth() + 1;  // Month is 0-indexed (0 for January, 11 for December)
+    const day = startDate.getDate();
+
+    // Format the result as "YYYY-MM-DD"
+    const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+    //setStartDate(formattedDate);
+
+    // let sDate= new Date(startDate.toDateString().split('T')[0]);
+    let childs = infants + children
+    let travelingFrom="";
+    if(from.length>0 && from.length>1){
+      from.map((item,i)=>{
+        if(travelingFrom=="")
+          travelingFrom=item.id
+        else{
+          travelingFrom=travelingFrom+item.id
+        }
+        if(i!=((from.length)-1))
+        travelingFrom= travelingFrom+"%2C"
+      })
+    }else if(from.length===1){
+      travelingFrom=from[0].id
+    }else{
+      travelingFrom=""
+    }
+ 
     const params = {
 
-      fromId:from,
-      toId:destination,
-      pageNo:0,
-      adults:adults,
-      children:'0%2C17',
-      sort:'BEST',
-      cabinClass:category,
-      currency_code:'AED',
-      departDate:startDate
+      fromId: travelingFrom,
+      toId: destination,
+      pageNo: 1,
+      adults: adults,
+      children: `${toddlers}%${childs}${youth === 0 ? '2C17' : youth + '2C17'}`,
+      sort: 'BEST',
+      cabinClass: category,
+      currency_code: 'AED',
+      departDate: formattedDate
 
-      
+
     };
 
     // if (children > 0) {
@@ -239,35 +282,37 @@ const StaySearch = () => {
     //   params.children_ages = childrenAges.join(","); // Convert array to comma-separated string
     // }
 
-    try {
-      const response = await axios.get(
-        "https://booking-com.p.rapidapi.com/v2/hotels/search",
-        {
-          params: params,
-          headers: {
-            "x-rapidapi-key":
-              "382abf3e9cmshee671a0454ca0abp16ae5ejsn53a4ed9ba4c8",
-            "x-rapidapi-host": "booking-com.p.rapidapi.com",
-          },
-        }
-      );
 
-      const flights = response.data;
-      console.log("response of search is", response.data);
+    axios.get(
+      "https://booking-com15.p.rapidapi.com/api/v1/flights/searchFlights",
+      {
+        params: params,
+        headers: {
+          'x-rapidapi-ua': 'RapidAPI-Playground',  // Replace with your actual value
+          'x-rapidapi-key': '3dc42e8945msh78eeff0020f2fbep1b86aejsnbc7327f142ab', // Replace with your actual RapidAPI key
+          'x-rapidapi-host': 'booking-com15.p.rapidapi.com', // Replace with the actual API host if different
+
+        },
+      }
+    ).then(response => {
+
+      const flights = response.data.data
+      console.log("response of search is", response.data.data);
 
       navigate("/results", {
         state: {
           flights: flights,
           checkin_date: checkinDate,
-         // checkout_date: checkoutDate,
+          from: travelingFrom,
+          destination: destination,
+          // checkout_date: checkoutDate,
           locale: staticLocale,
           currency: staticCurrency,
         },
       });
-    } catch (error) {
-      console.error("Error fetching hotel data:", error);
-    }
-  };
+    }).catch(error => console.log("Error fetching flight data:", error))
+
+  }
 
   const handleChildrenChange = (e) => {
     const numChildren = Number(e.target.value);
@@ -297,67 +342,134 @@ const StaySearch = () => {
     setAnchorEl(null);
   };
 
+  const RoundedAutocomplete = styled(Autocomplete)(({ theme }) => ({
+    flex: 1,
+    color: "black",
+    borderRadius: '50px',  // Round the outer container
+    '& .MuiAutocomplete-inputRoot': {
+      borderRadius: '50px',  // Round the dropdown and outer input container
+    },
+    '& .MuiInputBase-popover': {
+      borderRadius: '50px',  // Round the actual input area
+    },
+  }
+  ));
+
+
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
 
 
-  
-    const [selectedCountries, setSelectedCountries] = useState(null);
-    const countries = [
-        { name: 'Australia', code: 'AU' },
-        { name: 'Brazil', code: 'BR' },
-        { name: 'China', code: 'CN' },
-        { name: 'Egypt', code: 'EG' },
-        { name: 'France', code: 'FR' },
-        { name: 'Germany', code: 'DE' },
-        { name: 'India', code: 'IN' },
-        { name: 'Japan', code: 'JP' },
-        { name: 'Spain', code: 'ES' },
-        { name: 'United States', code: 'US' }
-    ];
 
-    const countryTemplate = (option) => {
-        return (
-            <div className="flex align-items-center">
-                <img alt={option.name} src="https://primefaces.org/cdn/primereact/images/flag/flag_placeholder.png" className={`mr-2 flag flag-${option.code.toLowerCase()}`} style={{ width: '18px' }} />
-                <div>{option.name}</div>
-            </div>
-        );
-    };
+  const [selectedCountries, setSelectedCountries] = useState(null);
+  const countries = [
+    { name: 'Australia', code: 'AU' },
+    { name: 'Brazil', code: 'BR' },
+    { name: 'China', code: 'CN' },
+    { name: 'Egypt', code: 'EG' },
+    { name: 'France', code: 'FR' },
+    { name: 'Germany', code: 'DE' },
+    { name: 'India', code: 'IN' },
+    { name: 'Japan', code: 'JP' },
+    { name: 'Spain', code: 'ES' },
+    { name: 'United States', code: 'US' }
+  ];
 
-    const panelFooterTemplate = () => {
-        const length = selectedCountries ? selectedCountries.length : 0;
+  const countryTemplate = (option) => {
+    return (
+      <div className="flex align-items-center">
+        <img alt={option.name} src="https://primefaces.org/cdn/primereact/images/flag/flag_placeholder.png" className={`mr-2 flag flag-${option.code.toLowerCase()}`} style={{ width: '18px' }} />
+        <div>{option.name}</div>
+      </div>
+    );
+  };
 
-        return (
-            <div className="py-2 px-3">
-                <b>{length}</b> item{length > 1 ? 's' : ''} selected.
-            </div>
-        );
-    };
+  const panelFooterTemplate = () => {
+    const length = selectedCountries ? selectedCountries.length : 0;
+
+    return (
+      <div className="py-2 px-3">
+        <b>{length}</b> item{length > 1 ? 's' : ''} selected.
+      </div>
+    );
+  };
+
+  const formatDate = (date) => {
+    return date.toString().split("T")[0];
 
 
+
+  };
+
+
+  const handleDateChange = (date) => {
+
+    // let nDate=formatDate(date)
+    // setSelectedDate(new Date(date));
+    setStartDate(new Date(date));
+  };
+
+  const handleInfantChange = (e) => {
+    if (e.target.value < 0) {
+      setInfants(0)
+    } else if (e.target.value > adults) {
+      setInfants(adults)
+    } else {
+
+      setInfants(Number(e.target.value))
+    }
+
+  }
+
+  const sum = (v1, v2, v3, v4) => {
+    return v1 + v2 + v3 + v4 > 0 ? v1 + v2 + v3 + v4 : 0
+  }
 
   return (
-    
+
     <Box
       display="flex"
+      //flexDirection={'row'}
       justifyContent="center"
+      //flexWrap="wrap" 
       alignItems="center"
-      sx={{ mt: 2 }}
+      sx={{
+        mt: 2,
+        borderRadius: "100px",
+         borderBottom: "2px solid #e0a043",
+          paddingBottom: "20px",
+          //padding: "10px 10px 0px 10px",
+          // paddingLeft:"50px",
+          marginLeft: "10%", 
+    marginRight: "15%", 
+        width: "80%",
+        backgroundColor: "#e0a043 ",
+         //backgroundColor: "black"
+      }
+      }
+
+
+
+
     >
 
- 
       <Box
         display="flex"
         alignItems="center"
+        //flexDirection="column "
+
         sx={{
-          borderRadius: "30px",
+          borderRadius: "100px",
           border: "2px solid #e0a043",
-          padding: "10px",
+          //backgroundColor: 'black',
+          // background: "#e0a043",
+          // paddingBottom: "20px",
+          padding: "10px 10px 0px 10px",
+          //flex-wrap: "wrap",
           width: "100%",
+          backgroundColor: "white !important",
         }}
       >
-
 
 <FormControl sx={{ m: 1, minWidth: 80 }} >
       <InputLabel id="demo-simple-select-error-label">Trip</InputLabel>
@@ -369,7 +481,7 @@ const StaySearch = () => {
         value={trip}
         label="Trip"
         onChange={handleChangeTrip}
-        
+        sx={{borderRadius:"50px"}}
       >
         <MenuItem value='ONE WAY'>One Way</MenuItem>
         <MenuItem value='RETURN'>Return</MenuItem>
@@ -385,6 +497,7 @@ const StaySearch = () => {
         id="demo-simple-select-error-label"
         defaultValue='Economy'
         value={category}
+        sx={{borderRadius:"50px"}}
         label="Category"
         onChange={handleChangeCategory}
         
@@ -397,15 +510,28 @@ const StaySearch = () => {
               </Select>
     </FormControl> 
 
-            <Autocomplete
-        //  multiple
-        //  id="tags-outlined"
+
+
+
+
+        
+        <Autocomplete
+          multiple
+          //id="tags-outlined"
+          id="multiple-limit-tags"
+          limitTags={1}
+          autoHighlight
+            // size="small"
           options={fromData}
           getOptionLabel={(option) => option.name}
           loading={loading}
-          sx={{ flex: 1 }}
+         // value={from}
+          sx={{
+            flex: 1, 
+            height : 'auto'
+          }}
           onInputChange={(event, value) => {
-            setToFrom(value);
+               setFromText(value)
           }}
           onChange={handleFromChange}
           renderInput={(params) => (
@@ -413,41 +539,56 @@ const StaySearch = () => {
               {...params}
               label="From"
               variant="outlined"
+                            disabled={from.length >= 3} 
+              //label="limitTags" 
+             // placeholder="Favorites"
               // InputProps={{
               //   ...params.InputProps,
               //   startAdornment: (
               //     <InputAdornment position="start">
               //       <PlaceIcon />
               //     </InputAdornment>
-                // ),
+              // ),
               //}}
-              sx={{ flex: 1, marginRight: "10px" }}
+              sx={{
+                flex: 1, marginRight: "10px",
+                
+                
+              }}
+
+
             />
           )}
+        
+          getOptionDisabled={(option) => from.length >= 3 && !from.includes(option)} // Disable options after 3 selections
+         
+
+
         />
 
 
-<Autocomplete
+        <Autocomplete
           options={searchData}
-        //   multiple
-        //  id="tags-outlined"
-          
-          
+          // multiple
+           //id="tags-outlined"
+           limitTags={1}
 
-           getOptionLabel={(option) => option.name}
-          
-           loading={loading}
-          sx={{ flex: 1 }}
+
+          getOptionLabel={(option) => option.name}
+
+          loading={loading}
+          sx={{ flex: 1, borderLeftRadius: "50px" }}
           onInputChange={(event, value) => {
-            setToDestination(value);
+            setToDestination(value)
           }}
           onChange={handleDestinationChange}
           renderInput={(params) => (
             <TextField
               {...params}
+
               label="To"
               variant="outlined"
-              // InputProps={{
+                           // InputProps={{
               //   ...params.InputProps,
               //   startAdornment: (
               //     <InputAdornment position="start">
@@ -460,25 +601,25 @@ const StaySearch = () => {
           )}
         />
 
-        <Box sx={{ marginLeft: "10px", flex: 1 }}>
+        <Box sx={{
+          flex: 1, marginLeft: "10px"
+        }}>
           <FormControl variant="outlined" fullWidth>
             <DatePicker
               selected={startDate}
-              placeholderText="Check In - Checkout"
-              onChange={(dates) => {
-                const [start, end] = dates;
-                setStartDate(start);
-                setEndDate(end);
-              }}
-              startDate={startDate}
-              endDate={endDate}
-              selectsRange
+              //placeholderText="Check In - Checkout"
+              placeholderText="Check In "
+              onChange={handleDateChange}
+              // selected={startDate}
+              //endDate={endDate}
+              //selectsRange
               minDate={addDays(new Date(), 1)}
               inline={false}
               customInput={
                 <TextField
                   variant="outlined"
                   fullWidth
+                  readOnly
                   sx={{ borderRadius: "30px", border: "none", padding: "10px" }}
                   InputProps={{
                     startAdornment: (
@@ -488,23 +629,42 @@ const StaySearch = () => {
                     ),
                   }}
                   value={
-                    startDate && endDate
+                    startDate
                       ? `Check-in: ${formatDate(
-                          startDate
-                        )}\nCheck-out: ${formatDate(endDate)}`
+                        startDate
+                      )}`
                       : ""
                   }
-                  readOnly
+
                 />
               }
             />
           </FormControl>
         </Box>
 
+
+
+        {/* <Box sx={{ marginLeft: "20px", flex: 1 }}>
+          <FormControl variant="outlined" fullWidth>
+            <DatePicker
+              selected={startDate}
+              placeholderText="Check In "
+              onChange={handleDateChange}
+              
+              startDate={startDate}
+              //endDate={endDate}
+              //selectsRange
+              minDate={addDays(new Date(), 1)}
+              inline={false}
+              
+            />
+          </FormControl>
+        </Box> */}
+
         <TextField
           readOnly
           onClick={handleClick}
-          label="Guests & Rooms"
+          label="Travellers"
           variant="outlined"
           InputProps={{
             startAdornment: (
@@ -513,10 +673,8 @@ const StaySearch = () => {
               </InputAdornment>
             ),
           }}
-          sx={{ flex: 1, marginLeft: "10px" }}
-          value={`${adults} adults · ${children} children · ${rooms} room${
-            rooms > 1 ? "s" : ""
-          }`}
+          sx={{ flex: 1, marginLeft: "10px", borderRadius: "50px" }}
+          value={`${adults} adults · ${children + toddlers + infants + youth} children ·`}
         />
 
         <Button
@@ -534,6 +692,9 @@ const StaySearch = () => {
           <SearchIcon />
         </Button>
       </Box>
+
+  
+
 
       <Popover
         id={id}
@@ -563,53 +724,46 @@ const StaySearch = () => {
               label="Adults 18+"
               type="number"
               value={adults}
-              onChange={(e) => setAdults(Number(e.target.value))}
+              onChange={(e) => setAdults(Number(e.target.value < 0 ? 0 : e.target.value))}
               variant="outlined"
-              sx={{ width: "auto", marginTop: "10px"}}
+              sx={{ width: "auto", marginTop: "10px" }}
             />
-            {/* <TextField
-              label="Students over 18"
-              type="number"
-              value={adults}
-              onChange={(e) => setAdults(Number(e.target.value))}
-              variant="outlined"
-              sx={{ width: "auto", marginTop:"10px" }}
-            /> */}
 
-            {/* <TextField
+
+            <TextField
               label="Youths 12-17"
               type="number"
-              value={children}
-              onChange={handleChildrenChange}
+              value={youth}
+              onChange={(e) => setYouth(Number(e.target.value < 0 ? 0 : e.target.value))}
               variant="outlined"
-              sx={{ width: "auto", marginTop:"10px"}}
-            /> */}
+              sx={{ width: "auto", marginTop: "10px" }}
+            />
 
             <TextField
               label="Children 2-11"
               type="number"
               value={children}
-              onChange={handleChildrenChange}
+              onChange={(e) => setChildren(Number(e.target.value < 0 ? 0 : e.target.value))}
               variant="outlined"
-              sx={{  marginTop: "10px",width: "auto" }}
+              sx={{ marginTop: "10px", width: "auto" }}
             />
-          
-            {/* <TextField
+
+            <TextField
               label="Toddlers in own seats"
               type="number"
-              value={rooms}
-              onChange={(e) => setRooms(Number(e.target.value))}
+              value={toddlers}
+              onChange={(e) => setToddlers(Number(e.target.value < 0 ? 0 : e.target.value))}
               variant="outlined"
               sx={{ width: "auto", marginTop: "10px" }}
             />
             <TextField
               label="Infants on lap under 12"
               type="number"
-              value={rooms}
-              onChange={(e) => setRooms(Number(e.target.value))}
+              value={infants}
+              onChange={handleInfantChange}
               variant="outlined"
               sx={{ width: "auto", marginTop: "10px" }}
-            /> */}
+            />
 
           </Box>
 
@@ -636,6 +790,53 @@ const StaySearch = () => {
           )} */}
         </Box>
       </Popover>
+
+
+   
+
+
+      {/* <FormControl sx={{ m: 1, minWidth: 80 }} >
+      <InputLabel id="demo-simple-select-error-label">Trip</InputLabel>
+      <Select
+      
+        labelId="demo-simple-select-error-label"
+        id="demo-simple-select-error-label"
+        defaultValue='One Way'
+        value={trip}
+        label="Trip"
+        onChange={handleChangeTrip}
+        sx={{borderRadius:"50px"}}
+      >
+        <MenuItem value='ONE WAY'>One Way</MenuItem>
+        <MenuItem value='RETURN'>Return</MenuItem>
+        <MenuItem value='MULTI CITY'>Multi City</MenuItem>
+      </Select>
+    </FormControl> 
+ 
+    
+<FormControl sx={{ m: 1 , minWidth:80 }}>
+      <InputLabel id="demo-simple-select-error-label">Category</InputLabel>
+      <Select
+        labelId="demo-simple-select-error-label"
+        id="demo-simple-select-error-label"
+        defaultValue='Economy'
+        value={category}
+        sx={{borderRadius:"50px"}}
+        label="Category"
+        onChange={handleChangeCategory}
+        
+      >
+        <MenuItem value='ECONOMY'>Economy</MenuItem>
+        <MenuItem value='PREMIUM ECONOMY'>Premium Economy</MenuItem>
+        <MenuItem value='BUSINESS'>Business</MenuItem>
+        <MenuItem value='FIRST'>First</MenuItem>
+        <MenuItem value='MULTIPLE'>Multiple</MenuItem>
+              </Select>
+    </FormControl> 
+
+       */}
+
+
     </Box>
 
 
@@ -644,11 +845,5 @@ const StaySearch = () => {
   );
 };
 
-const formatDate = (date) => {
-  return date.toISOString().split("T")[0];
-
- 
-
-};
 
 export default StaySearch;

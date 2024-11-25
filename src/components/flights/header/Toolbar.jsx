@@ -8,7 +8,7 @@ import LocalTaxiIcon from "@mui/icons-material/LocalTaxi";
 import { Link } from "react-router-dom";
 
 const Toolbar = () => {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(1);
 
   const handleButtonClick = (index) => {
     setActiveIndex(index);

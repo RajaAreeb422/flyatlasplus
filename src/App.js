@@ -11,6 +11,10 @@ import { Provider } from 'react-redux';
 import store from './Redux/store';
 import Toolbar from './components/flights/header/Toolbar';
 import StaySearch from './components/flights/searchbar/StaySearch';
+import FoundProperties from './components/flights/searchbar/FoundProperties';
+import PropertiesFilter from './components/flights/searchbar/PropertiesFilter';
+import FlightSearch from './components/flights/searchbar/FlightSearch';
+
 
 const App = () => {
   return (
@@ -20,12 +24,17 @@ const App = () => {
       
       </Provider>
       <Toolbar />
+      
       <StaySearch />
+        
+      
+      {/* <FoundProperties /> */}
       <Routes>
          
         {/* <Route path="/" element={<SearchBar />} /> */}
       
-        <Route path="/results" element={<FlightSearchResults />} />
+        <Route path="/results" element={<FlightSearch  />} />
+      
       </Routes>
     </Router>
   );

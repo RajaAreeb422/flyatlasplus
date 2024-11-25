@@ -1,0 +1,111 @@
+/* App.css */
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f4f8;
+    margin: 0;
+    padding: 0;
+    color: #333;
+  }
+  
+  .flight-search-container {
+    text-align: center;
+    padding: 50px 20px;
+    width:"50%",
+    /* width: fit-content; */
+  }
+  
+  .main-title {
+    font-size: 36px;
+    font-weight: bold;
+    color: #4a90e2;
+    margin-bottom: 30px;
+  }
+  
+  .loading-message {
+    font-size: 18px;
+    color: #888;
+    margin-top: 20px;
+  }
+  
+  .flight-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 40px;
+  }
+  
+  .flight-card {
+    background-color: #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    width: 80%;
+    max-width: 500px;
+    margin: 15px;
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .flight-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .flight-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .airline-logo {
+    width: 60px;
+    height: 40px;
+    margin-right: 15px;
+  }
+  
+  .flight-card h2 {
+    font-size: 24px;
+    color: #333;
+    margin: 0;
+  }
+  
+  .flight-card-body {
+    font-size: 16px;
+    color: #555;
+  }
+  
+  .flight-route {
+    font-size: 18px;
+    font-weight: bold;
+    color: #4a90e2;
+  }
+  
+  .flight-time,
+  .flight-price {
+    margin: 10px 0;
+  }
+  
+  .flight-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #e74c3c;
+  }
+  
+  @media (max-width: 768px) {
+    .flight-card {
+      width: 90%;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .main-title {
+      font-size: 28px;
+    }
+  
+    .flight-card {
+      width: 100%;
+      padding: 15px;
+    }
+  }
+  
