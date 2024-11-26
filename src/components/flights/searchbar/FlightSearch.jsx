@@ -13,80 +13,101 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 const FlightSearch = () => {
   const location = useLocation();
   const [flightOffers,setFlightOffers]=useState([])
+  const [departureIntervals,setDepartatureIntervals]=useState([])
   const [flightOffersAll,setFlightOffersAll]=useState([])
   const [airlines,setAirlines]=useState([])
   const [selectedAirlines, setSelectedAirlines] = useState([])
   const { flights, checkin_date, from,destination, locale, currency } = location.state || {};
+  const [sliderValues, setSliderValues] = useState([0, 0]);
+  const [isFirst, setIsFirst] = useState(true);
+  const [stops, setStops] = useState([]);
+  const [selectedStops, setSelectedStops] = useState([]);
 
 
   useEffect(() => {
 
     let list=[]
-    debugger;
-    setAirlines(flights.aggregation.airlines)
-    flights.flightOffers.map((offer) => {
-      const segments = offer.segments;
-      if (segments.length === 0) return offer; // No segments available
-
-      const legs = segments[0].legs; 
-      
-      let timeDifference = calculateTimeDifference(segments[0].departureTime, segments[0].arrivalTime);// Assuming we only care about the first segment
-      segments[0].departureTime=formatDateTime(segments[0].departureTime) 
-      segments[0].arrivalTime=formatDateTime(segments[0].arrivalTime) 
-
-      let airlineLogo, airlineName, travellingStops;
-
-      if (legs.length === 1) {
-          // If there's only one leg, use the first leg's airline data
-          airlineLogo = legs[0].carriersData[0].logo;
-          airlineName = legs[0].carriersData[0].name;
-      } else if (legs.length > 1) {
-        
-          let codes=[];
-         legs.map((leg,i) =>{
-            codes.push(leg.carriersData[0].code)
-            if(i!=0){
-              if(!airlineName.includes(leg.carriersData[0].name))
-              airlineName=airlineName + ", " + leg.carriersData[0].name
-              if(i!=legs.length-1)
-              travellingStops=travellingStops + ", " + leg.arrivalAirport.code
-            }
-            else{
-              airlineName=leg.carriersData[0].name
-              travellingStops=leg.arrivalAirport.code
-            }
-            
-          })
-
-          const carrierCodes =  codes; 
-          const allSame = carrierCodes.every(code => code === carrierCodes[0]);
-
-          if (!allSame) {
-              // If the carrier codes are not the same, use your own logo and name
-              airlineLogo = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyLK6wTU3KGqKoRV3jSilpa0_Phy_sguc5sg&s'
-              airlineName = airlineName; // Replace with your custom airline name
-          } else {
-              // If they are the same, use the first leg's airline data
-              airlineLogo = legs[0].carriersData[0].logo;
-              airlineName = legs[0].carriersData[0].name;
-          }
-      }
-
-      offer.airlineLogo=airlineLogo;
-      offer.airlineName=airlineName;
-      offer.travellingStops=travellingStops
-      offer.timeDifference=timeDifference
-      list.push(offer)
-    }
-
-
-
+    if(isFirst){
+     
+      setAirlines(flights.aggregation.airlines)
+      setStops(flights.aggregation.stops)
+      setDepartatureIntervals(flights.aggregation.departureIntervals)
+      let dList=[timeToMinutes(flights.aggregation.departureIntervals[0].start),
+      timeToMinutes(flights.aggregation.departureIntervals[0].end)];
+      setSliderValues(dList)
+      setIsFirst(false)
+      flights.flightOffers.map((offer) => {
+        const segments = offer.segments;
+        if (segments.length === 0) return offer; // No segments available
   
-  )
+        const legs = segments[0].legs; 
+        
+        let timeDifference = calculateTimeDifference(segments[0].departureTime, segments[0].arrivalTime);// Assuming we only care about the first segment
+        segments[0].departureTime=formatDateTime(segments[0].departureTime) 
+        segments[0].arrivalTime=formatDateTime(segments[0].arrivalTime) 
+  
+        let airlineLogo, airlineName, travellingStops;
+  
+        if (legs.length === 1) {
+            // If there's only one leg, use the first leg's airline data
+            airlineLogo = legs[0].carriersData[0].logo;
+            airlineName = legs[0].carriersData[0].name;
+        } else if (legs.length > 1) {
+          
+            let codes=[];
+           legs.map((leg,i) =>{
+            
+                leg.carriers.map(carr=>{
+                  codes.push(carr)
+                  if(i!=0){
+                    if(!airlineName.includes(leg.carriersData[0].name))
+                    airlineName=airlineName + ", " + leg.carriersData[0].name
+                    if(i!=legs.length-1)
+                    travellingStops=travellingStops + ", " + leg.arrivalAirport.code
+                  }
+                  else{
+                    airlineName=leg.carriersData[0].name
+                    travellingStops=leg.arrivalAirport.code
+                  }
+                })
+              
+              
+            })
+  
+            const carrierCodes =  codes; 
+            const allSame = carrierCodes.every(code => code === carrierCodes[0]);
+  
+            if (!allSame) {
+                // If the carrier codes are not the same, use your own logo and name
+                airlineLogo = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyLK6wTU3KGqKoRV3jSilpa0_Phy_sguc5sg&s'
+                airlineName = airlineName; // Replace with your custom airline name
+            } else {
+                // If they are the same, use the first leg's airline data
+                airlineLogo = legs[0].carriersData[0].logo;
+                airlineName = legs[0].carriersData[0].name;
+            }
+        }
+  
+        offer.airlineLogo=airlineLogo;
+        offer.airlineName=airlineName;
+        offer.travellingStops=travellingStops
+        offer.timeDifference=timeDifference
+        list.push(offer)
+      }
+  
+  
+  
+    
+    )
+  
+      setFlightOffers(list)
+      setFlightOffersAll(list)
+   
 
-    setFlightOffers(list)
-    setFlightOffersAll(list)
-  },[]);
+
+    }
+    filterOffers()
+  },[selectedAirlines,sliderValues,selectedStops]);
 
   const [selectedSort, setSelectedSort] = useState('Best');
   const handleSortChange = (sortOption) => {
@@ -126,20 +147,27 @@ const handleCheckboxChange = (airlineName) => {
       }
   });
   
-  console.log(list)
 
 
 
-const newFilteredOffers = flightOffers.filter(offer => {
-  return offer.segments.some(segment =>
-      segment.legs.map(it=>{
-        
-        list.includes(it.carriersData[0].code)
-      })
-     
-  );
-});
-setFlightOffers(newFilteredOffers);
+
+}
+  
+
+  const handleStopsCheckboxChange = (stopsNo) => {
+  //  let list=[]
+    setSelectedStops((prevSelected) => {
+        if (prevSelected.includes(stopsNo)) {
+       
+          return prevSelected.filter(name => name !== stopsNo)
+        } else {
+         // list= [...prevSelected, stopsNo]
+            return [...prevSelected, stopsNo];
+        }
+    });
+    
+
+
 
 
 
@@ -163,6 +191,51 @@ function calculateTimeDifference(startDateString, endDateString) {
     return `${hours}h ${minutes}m`;
 }
 
+const timeToMinutes = (time) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes; // Convert to total minutes
+};
+
+const minutesToTime = (minutes) => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+};
+
+const handleSliderChange = (event, newValue) => {
+  console.log(newValue)
+  //newValue=timeToMinutes(newValue)
+  setSliderValues(newValue); 
+  // const [start, end] = newValue.map(minutesToTime);
+  // const filtered = flightOffersAll.filter(offer => {
+  //     const departureTime = new Date(offer.segments[0].departureTime).toISOString().substr(11, 5);
+  //     return departureTime >= start && departureTime <= end;
+  // });
+  // //console.log(filtered)
+  // setFlightOffers(filtered);
+};
+
+const filterOffers = () => {
+  const [start, end] = sliderValues;
+  const filtered = flightOffersAll.filter(offer => {
+      const departureTime = new Date(offer.segments[0].departureTime).toISOString().substr(11, 5);
+      const isTimeInRange = departureTime >= minutesToTime(start) && departureTime <= minutesToTime(end);
+      const isAirlineSelected = selectedAirlines.length === 0 || offer.segments.some(segment => 
+          segment.legs.some(leg => selectedAirlines.includes(leg.carriersData[0].code))
+      );
+
+      const numberOfStops = offer.segments[0].legs.length - 1; // Legs length - 1 gives the number of stops
+            const isStopsSelected = selectedStops.length === 0 || selectedStops.includes(numberOfStops);
+
+      return isTimeInRange && isAirlineSelected && isStopsSelected;
+      
+  });
+
+  setFlightOffers(filtered);
+};
+
+
+
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'row', height: '100%',   width: '80%', marginLeft: '10%',  marginRight: '10%',marginTop: '2%',  }}>
@@ -173,20 +246,32 @@ function calculateTimeDifference(startDateString, endDateString) {
 
         {/* Price Range Filter */}
         <Box sx={{marginBottom:'10px' ,borderBottomColor: 'black' , borderBottom: '1px solid black', }}>
-        <Typography variant="h5" sx={{ marginBottom: '10px', color: 'black' }}>Stops</Typography>
+        <Typography variant="h5" sx={{ marginBottom: '10px', color: 'black',fontWeight: 'bold'  }}>Stops</Typography>
         
         {/* <TextField label="Min Price" variant="outlined" fullWidth sx={{ marginBottom: '10px' }} />
         <TextField sx ={{marginBottom : '10px'}} label="Max Price" variant="outlined" fullWidth />
          */}
         
         <FormGroup>
-        <Box sx={{display: 'flex', justifyContent: 'space-between',  alignItems: 'center'}}>
-          <FormControlLabel control={<Checkbox />} label="NonStop"
-          sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }} /> 
-          <Typography variant="body2" color="black"  >300$</Typography>
-        </Box>
+          {stops.length>0 &&
+            stops.map((st,i)=>(
+              <Box sx={{display: 'flex', justifyContent: 'space-between',  alignItems: 'center'}}>
+              <FormControlLabel control={
+                <Checkbox
+                checked={selectedStops.includes(st.numberOfStops)} 
+                onChange={() => handleStopsCheckboxChange(st.numberOfStops)} 
+                 />
+              } 
+              label={st.numberOfStops==0?'Direct':st.numberOfStops+" "+ "Stops"}
+              sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }} /> 
+              <Typography variant="body2" color="black"  >{st.minPrice.units}$</Typography>
+            </Box>
+            ))
+
+          }
        
-        <Box sx={{display: 'flex', justifyContent: 'space-between',  alignItems: 'center'}}>
+       
+        {/* <Box sx={{display: 'flex', justifyContent: 'space-between',  alignItems: 'center'}}>
           <FormControlLabel control={<Checkbox />} label="1 Stop" 
           sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}/> 
           <Typography variant="body2" color="black"  >400$</Typography>
@@ -196,7 +281,7 @@ function calculateTimeDifference(startDateString, endDateString) {
           <FormControlLabel control={<Checkbox />} label="2+ Stops" 
           sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}/> 
           <Typography variant="body2" color="black"  >500$</Typography>
-        </Box>
+        </Box> */}
        
        
         </FormGroup>
@@ -204,13 +289,13 @@ function calculateTimeDifference(startDateString, endDateString) {
         </Box>
 
         <Box sx={{marginBottom:'15px' ,borderBottomColor: 'black' , borderBottom: '1px solid black',}}>
-        {/* Filter */}
+     
         
        
         
         <Typography  sx={{ marginTop: '20px', marginBottom: '10px', fontSize : '20px', fontWeight: 'bold' }}>Flight Times</Typography>
         
-        <Box>
+        {/* <Box>
         <Box sx={{ display:'flex', marginTop: '20px', marginBottom: '5px', alignItems : 'center' }}>
         <Typography sx ={{fontSize : '16px ', fontWeight : 'bold',  marginRight: '5px'}} >Take-off</Typography>
         <Typography variant="body2" > Munich(MUC)</Typography>
@@ -256,8 +341,7 @@ function calculateTimeDifference(startDateString, endDateString) {
   
         
         <Box>
-        {/* <Typography variant="h6" sx={{ marginTop: '20px', marginBottom: '5px' }}>Landing Berlin(BER)</Typography>
-         */}
+        
         
         <Box sx={{ display:'flex', marginTop: '20px', marginBottom: '5px', alignItems : 'center' }}>
         <Typography sx ={{fontSize : '16px ', fontWeight : 'bold',  marginRight: '5px'}} >Landing</Typography>
@@ -271,10 +355,10 @@ function calculateTimeDifference(startDateString, endDateString) {
         <Typography variant="body2" sx={{  }}>Fri 09:00 PM</Typography>
       
         </Box>
-        
+         */}
         
 
-        <Box sx={{ width: 'auto', marginTop: '15px',  marginLeft : '10px', marginRight : '10px' }}>
+        {/* <Box sx={{ width: 'auto', marginTop: '15px',  marginLeft : '10px', marginRight : '10px' }}>
         <Slider
     getAriaLabel={() => 'Price range'}
     valueLabelDisplay="auto"
@@ -299,54 +383,66 @@ function calculateTimeDifference(startDateString, endDateString) {
     }}
   />
 
-</Box>
+</Box> */}
 
-        </Box>
+        
   
         <Box>
         {/* <Typography variant="h6" sx={{ marginTop: '20px', marginBottom: '5px' }}>Take-off Berlin(BER)</Typography>
          */}
         <Box sx={{ display:'flex', marginTop: '20px', marginBottom: '5px', alignItems : 'center' }}>
         <Typography sx ={{fontSize : '16px ', fontWeight : 'bold',  marginRight: '5px'}} >Take-off</Typography>
-        <Typography variant="body2" > Berlin (BER)</Typography>
+        <Typography variant="body2" > {from}</Typography>
         </Box>  
 
         
-        <Box sx={{display: 'flex', justifyContent: 'space-between',  alignItems: 'center'}}>
+       {departureIntervals.length>0 &&
+         departureIntervals.map((dp)=>(
+          <>
+<Box sx={{display: 'flex', justifyContent: 'space-between',  alignItems: 'center'}}>
 
-        <Typography variant="body2" sx={{  }}>Sat 10:00 AM</Typography>
-        <Typography variant="body2" sx={{  }}>Sat 08:00 AM</Typography>
-      
-        </Box>
-        
-        
-
-        <Box sx={{ width: 'auto', marginTop: '15px',  marginLeft : '10px', marginRight : '10px' }}>
-        <Slider
-    getAriaLabel={() => 'Price range'}
-    valueLabelDisplay="auto"
-    valueLabelFormat={(value) => `${value}`}  // Optionally format the value
-    min={500}  // Set the minimum value
-    max={1000}  // Set the maximum value
-    defaultValue={[500, 1000]}  // Set the default range (e.g., from 20 to 80)
-    sx={{
-      color: 'black',  // Change the color of the slider to black
-      '& .MuiSlider-thumb': {
-        backgroundColor: 'white',  // Set the color of the thumb (the slider knob)
-        borderRadius: '0px ',
-        border: '2px solid black'
-
-      },
-      '& .MuiSlider-rail': {
-        backgroundColor: 'gray',  // Set the color of the rail (the line behind the slider)
-      },
-      '& .MuiSlider-track': {
-        backgroundColor: 'black',  // Set the color of the track (the portion filled by the slider)
-      },
-    }}
-  />
+<Typography variant="body2" sx={{  }}>{minutesToTime(sliderValues[0])}</Typography>
+<Typography variant="body2" sx={{  }}>{minutesToTime(sliderValues[1])}</Typography>
 
 </Box>
+
+<Box sx={{ width: 'auto', marginTop: '15px',  marginLeft : '10px', marginRight : '10px' }}>
+<Slider
+getAriaLabel={() => 'Departure time range'}
+valueLabelDisplay="auto"
+valueLabelFormat={(value) => `${value}`}  // Optionally format the value
+min={timeToMinutes(dp.start)}  // Set the minimum value
+max={timeToMinutes(dp.end)}
+value={sliderValues}  
+defaultValue={[timeToMinutes(dp.start), timeToMinutes(dp.end)]} 
+onChange={handleSliderChange} // Set the default range (e.g., from 20 to 80)
+sx={{
+color: 'black',  // Change the color of the slider to black
+'& .MuiSlider-thumb': {
+backgroundColor: 'white',  // Set the color of the thumb (the slider knob)
+borderRadius: '0px ',
+border: '2px solid black'
+
+},
+'& .MuiSlider-rail': {
+backgroundColor: 'gray',  // Set the color of the rail (the line behind the slider)
+},
+'& .MuiSlider-track': {
+backgroundColor: 'black',  // Set the color of the track (the portion filled by the slider)
+},
+}}
+/>
+
+</Box>
+</>
+         ))
+
+       } 
+        
+        
+      
+
+ 
 
         </Box>
   
@@ -355,9 +451,8 @@ function calculateTimeDifference(startDateString, endDateString) {
 
 
                 
-        <Box>
-        {/* <Typography variant="h6" sx={{ marginTop: '20px', marginBottom: '5px' }}>Landing Berlin(BER)</Typography> */}
-        
+        {/* <Box>
+       
         <Box sx={{ display:'flex', marginTop: '20px', marginBottom: '5px', alignItems : 'center' }}>
         <Typography sx ={{fontSize : '16px ', fontWeight : 'bold',  marginRight: '5px'}} >Landing</Typography>
         <Typography variant="body2" > Munich(MUC)</Typography>
@@ -400,12 +495,12 @@ function calculateTimeDifference(startDateString, endDateString) {
 
 </Box>
 
-        </Box>
+        </Box> */}
         </Box>
 
         <Box sx={{marginBottom:'25px' ,borderBottomColor: 'black' , borderBottom: '1px solid black', }}>
 
-        <Typography variant="h5" sx={{ marginBottom: '10px', color: 'black' }}>Airlines</Typography>
+        <Typography variant="h5" sx={{ marginBottom: '10px', color: 'black', fontWeight: 'bold' }}>Airlines</Typography>
         <Typography variant="body2" sx={{ marginTop: '10px', color: 'black' }}>Select All Airlines</Typography>
         {/* <TextField label="Min Price" variant="outlined" fullWidth sx={{ marginBottom: '10px' }} />
         <TextField sx ={{marginBottom : '10px'}} label="Max Price" variant="outlined" fullWidth />
