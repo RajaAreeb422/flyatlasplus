@@ -733,7 +733,7 @@ const StaySearch = () => {
       
       >
 
-      Trip
+     
       </InputLabel>
       <Select 
       
@@ -776,7 +776,7 @@ const StaySearch = () => {
         color: 'black', 
       }} 
       
-      >Category</InputLabel>
+      ></InputLabel>
       <Select
         labelId="demo-select-small-label"
         id="demo-select-small-label"

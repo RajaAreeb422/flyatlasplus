@@ -779,7 +779,7 @@ const FlightSearchBar = ({
       
       >
 
-      Trip
+      
       </InputLabel>
       <Select 
       
@@ -822,7 +822,7 @@ const FlightSearchBar = ({
         color: 'black', 
       }} 
       
-      >Category</InputLabel>
+      ></InputLabel>
       <Select
         labelId="demo-select-small-label"
         id="demo-select-small-label"

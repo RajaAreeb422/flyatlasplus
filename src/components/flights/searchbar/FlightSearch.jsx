@@ -766,7 +766,7 @@ backgroundColor: 'black',  // Set the color of the track (the portion filled by 
                   <small>{item.airlineName}</small>
                 </Typography>
                   <Typography variant="h6" color="black" sx={{ marginBottom: '10px' }}>
-                    $500 per ticket
+                    ${item.priceBreakdown.totalRounded.units}
                   </Typography>
                   {/* <Typography variant="body2" color="textSecondary">
                     Rating: {airline.rating} stars
