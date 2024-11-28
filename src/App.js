@@ -25,7 +25,7 @@ const App = () => {
       </Provider>
       <Toolbar />
       
-      <StaySearch />
+     
         
       
       {/* <FoundProperties /> */}
@@ -34,6 +34,7 @@ const App = () => {
         {/* <Route path="/" element={<SearchBar />} /> */}
       
         <Route path="/results" element={<FlightSearch  />} />
+        <Route path="/flights" element={<StaySearch  />} />
       
       </Routes>
     </Router>

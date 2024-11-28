@@ -29,6 +29,7 @@ import { Flight } from '@mui/icons-material';
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedValue(value);
@@ -44,13 +45,25 @@ const useDebounce = (value, delay) => {
 
 
 
-const StaySearch = () => {
+const FlightSearchBar = ({
+  startDate1,
+  from1,
+  destination1,
+  trip1,
+  category1,
+  adults1,
+  children1,
+  infants1,
+  youth1,
+  handleSearchData
+}) => {
   const [destination, setToDestination] = useState(""); // for destination
   const [from, setToFrom] = useState([]);
   const [fromText, setFromText] = useState(""); // for from
 
   const [trip, setTrip] = React.useState('One-Way');
   const [category, setCategory] = React.useState('Economy');
+  const [first, setFirst] = useState(true);
 
   const [searchData, setSearchData] = useState([]);
   const [fromData, setSearchFromData] = useState([]);
@@ -182,9 +195,23 @@ const StaySearch = () => {
       }
     };
 
-
+    
     handleDestinationSearch();
     handleFromSearch()
+   
+    debugger;
+    if(first){
+    setToFrom(from1)
+    setStartDate(startDate1)
+    setToDestination(destination1)
+    setAdults(adults1)
+    setInfants(infants1)
+    setYouth(youth1)
+    setTrip(trip1)
+    setCategory(category1)
+    setChildren(children1)
+    setFirst(false)
+    }
   }, [debouncedDestination, debouncedFrom]);
 
 
@@ -298,25 +325,40 @@ const StaySearch = () => {
 
       const flights = response.data.data
       console.log("response of search is", response.data.data);
-
-      navigate("/results", {
-        state: {
-          flights: flights,
-          checkin_date: startDate,
-          from: travelingFrom,
-          source:from,
-          destination: destination,
-          trip:trip,
-          category:category,
-          adults:adults,
-          children:children,
-          infants:infants,
-          youth:youth,
-          // checkout_date: checkoutDate,
-          locale: staticLocale,
-          currency: staticCurrency,
-        },
-      });
+      let state= {
+        flights:flights,
+        checkin_date: startDate,
+        from: travelingFrom,
+        source:from,
+        destination: destination,
+        trip:trip,
+        category:category,
+        adults:adults,
+        children:children,
+        infants:infants,
+        youth:youth,
+        // checkout_date: checkoutDate,
+        locale: staticLocale,
+        currency: staticCurrency,
+      }
+      handleSearchData(state)
+      // navigate("/results", {
+      //   state: {
+      //     checkin_date: startDate,
+      //     from: travelingFrom,
+      //     source:from,
+      //     destination: destination,
+      //     trip:trip,
+      //     category:category,
+      //     adults:adults,
+      //     children:children,
+      //     infants:infants,
+      //     youth:youth,
+      //     // checkout_date: checkoutDate,
+      //     locale: staticLocale,
+      //     currency: staticCurrency,
+      //   },
+      // });
     }).catch(error => console.log("Error fetching flight data:", error))
 
   }
@@ -506,7 +548,11 @@ const StaySearch = () => {
             display: 'flex',
             //marginLeft : '15px',
             alignItems : 'center',
+            //width:'1200px !important',
+            //background:'red',
             
+        
+            //height : '10px'
           }}
           onInputChange={(event, value) => {
                setFromText(value)
@@ -576,7 +622,7 @@ const StaySearch = () => {
 
 
           getOptionLabel={(option) => option.name}
-
+    
           loading={loading}
           sx={{ flex: 1, borderLeftRadius: "50px" }}
           onInputChange={(event, value) => {
@@ -925,4 +971,4 @@ const StaySearch = () => {
 };
 
 
-export default StaySearch;
+export default FlightSearchBar;

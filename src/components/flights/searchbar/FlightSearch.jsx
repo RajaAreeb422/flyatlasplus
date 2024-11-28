@@ -9,15 +9,26 @@ import AirlineSeatReclineNormalIcon from '@mui/icons-material/AirlineSeatRecline
 import Checkbox from '@mui/material/Checkbox';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import FlightSearchBar from './FlightSearchBar';
 
 const FlightSearch = () => {
   const location = useLocation();
   const [flightOffers,setFlightOffers]=useState([])
   const [departureIntervals,setDepartatureIntervals]=useState([])
+  const [travelFrom,setTravelFrom]=useState("")
+  const [travelTo,setTravelTo]=useState("")
   const [flightOffersAll,setFlightOffersAll]=useState([])
   const [airlines,setAirlines]=useState([])
   const [selectedAirlines, setSelectedAirlines] = useState([])
-  const { flights, checkin_date, from,destination, locale, currency } = location.state || {};
+  const { flights, checkin_date, from,destination, locale, currency ,
+    trip,
+    category,
+    adults,
+    children,
+    infants,
+    youth,
+    source
+  } = location.state || {};
   const [sliderValues, setSliderValues] = useState([0, 0]);
   const [isFirst, setIsFirst] = useState(true);
   const [stops, setStops] = useState([]);
@@ -29,6 +40,8 @@ const FlightSearch = () => {
     let list=[]
     if(isFirst){
      
+      setTravelFrom(from)
+      setTravelTo(destination)
       setAirlines(flights.aggregation.airlines)
       setStops(flights.aggregation.stops)
       setDepartatureIntervals(flights.aggregation.departureIntervals)
@@ -107,23 +120,14 @@ const FlightSearch = () => {
 
     }
     filterOffers()
-  },[selectedAirlines,sliderValues,selectedStops]);
+  },[selectedAirlines,sliderValues,selectedStops,from,destination,flights,location.state]);
 
   const [selectedSort, setSelectedSort] = useState('Best');
   const handleSortChange = (sortOption) => {
     setSelectedSort(sortOption);
   };
 
-  // Dummy data for 6 airlines
-  // const airlines = [
-  //   { id: 1,departureTime: '8:00', arrivalTime: '12:00',name: 'Emirates', price: 200, from: 'Los Angeles', to: 'New York', duration: 6, description: 'Non-stop flight to New York', rating: 4.5, imageUrl: 'https://via.placeholder.com/150' },
-  //   { id: 2, name: 'Rayyan ',departureTime: '8:00', arrivalTime: '12:00', price: 150, from: 'San Francisco', to: 'Chicago', duration: 5, description: 'Comfortable seating with extra legroom', rating: 4.0, imageUrl: 'https://via.placeholder.com/150' },
-  //   { id: 3, name: 'British Airlines',departureTime: '8:00', arrivalTime: '12:00', price: 120, from: 'Boston', to: 'Miami', duration: 3.5, description: 'Economy class with snacks included', rating: 3.8, imageUrl: 'https://via.placeholder.com/150' },
-  //   { id: 4, name: 'PIA',departureTime: '8:00', arrivalTime: '12:00', price: 250, from: 'Houston', to: 'Los Angeles', duration: 4, description: 'First class service, fully equipped', rating: 5.0, imageUrl: 'https://via.placeholder.com/150' },
-  //   { id: 5, name: 'Qatar Airways',departureTime: '8:00', arrivalTime: '12:00', price: 180, from: 'Dallas', to: 'Chicago', duration: 2.5, description: 'Special offers on group bookings', rating: 4.2, imageUrl: 'https://via.placeholder.com/150' },
-  //   { id: 6, name: 'Air CHina',departureTime: '8:00', arrivalTime: '12:00', price: 220, from: 'Miami', to: 'New York', duration: 3, description: 'Business class with complimentary meals', rating: 4.8, imageUrl: 'https://via.placeholder.com/150' }
-  // ];
-
+  
   function formatDateTime(dateString) {
     const options = { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
     const date = new Date(dateString);
@@ -133,6 +137,8 @@ const FlightSearch = () => {
     
     return formattedDate;
 }
+
+
 
 
 const handleCheckboxChange = (airlineName) => {
@@ -149,8 +155,6 @@ const handleCheckboxChange = (airlineName) => {
   
 
 
-
-
 }
   
 
@@ -165,11 +169,6 @@ const handleCheckboxChange = (airlineName) => {
             return [...prevSelected, stopsNo];
         }
     });
-    
-
-
-
-
 
 };
 
@@ -206,13 +205,7 @@ const handleSliderChange = (event, newValue) => {
   console.log(newValue)
   //newValue=timeToMinutes(newValue)
   setSliderValues(newValue); 
-  // const [start, end] = newValue.map(minutesToTime);
-  // const filtered = flightOffersAll.filter(offer => {
-  //     const departureTime = new Date(offer.segments[0].departureTime).toISOString().substr(11, 5);
-  //     return departureTime >= start && departureTime <= end;
-  // });
-  // //console.log(filtered)
-  // setFlightOffers(filtered);
+
 };
 
 const filterOffers = () => {
@@ -236,10 +229,106 @@ const filterOffers = () => {
 
 
 
+const getChildData=(data)=>{
+  debugger;
+  let list=[]
 
+  setTravelFrom(data.from)
+  setTravelTo(data.destination)
+  setAirlines(data.flights.aggregation.airlines)
+  
+  setStops(data.flights.aggregation.stops)
+  setDepartatureIntervals(data.flights.aggregation.departureIntervals)
+  let dList=[timeToMinutes(data.flights.aggregation.departureIntervals[0].start),
+  timeToMinutes(data.flights.aggregation.departureIntervals[0].end)];
+  setSliderValues(dList)
+  setIsFirst(false)
+  data.flights.flightOffers.map((offer) => {
+    const segments = offer.segments;
+    if (segments.length === 0) return offer; // No segments available
+
+    const legs = segments[0].legs; 
+    
+    let timeDifference = calculateTimeDifference(segments[0].departureTime, segments[0].arrivalTime);// Assuming we only care about the first segment
+    segments[0].departureTime=formatDateTime(segments[0].departureTime) 
+    segments[0].arrivalTime=formatDateTime(segments[0].arrivalTime) 
+
+    let airlineLogo, airlineName, travellingStops;
+
+    if (legs.length === 1) {
+        // If there's only one leg, use the first leg's airline data
+        airlineLogo = legs[0].carriersData[0].logo;
+        airlineName = legs[0].carriersData[0].name;
+    } else if (legs.length > 1) {
+      
+        let codes=[];
+       legs.map((leg,i) =>{
+        
+            leg.carriers.map(carr=>{
+              codes.push(carr)
+              if(i!=0){
+                if(!airlineName.includes(leg.carriersData[0].name))
+                airlineName=airlineName + ", " + leg.carriersData[0].name
+                if(i!=legs.length-1)
+                travellingStops=travellingStops + ", " + leg.arrivalAirport.code
+              }
+              else{
+                airlineName=leg.carriersData[0].name
+                travellingStops=leg.arrivalAirport.code
+              }
+            })
+          
+          
+        })
+
+        const carrierCodes =  codes; 
+        const allSame = carrierCodes.every(code => code === carrierCodes[0]);
+
+        if (!allSame) {
+            // If the carrier codes are not the same, use your own logo and name
+            airlineLogo = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyLK6wTU3KGqKoRV3jSilpa0_Phy_sguc5sg&s'
+            airlineName = airlineName; // Replace with your custom airline name
+        } else {
+            // If they are the same, use the first leg's airline data
+            airlineLogo = legs[0].carriersData[0].logo;
+            airlineName = legs[0].carriersData[0].name;
+        }
+    }
+
+    offer.airlineLogo=airlineLogo;
+    offer.airlineName=airlineName;
+    offer.travellingStops=travellingStops
+    offer.timeDifference=timeDifference
+    list.push(offer)
+  }
+
+
+
+
+)
+
+  setFlightOffers(list)
+  setFlightOffersAll(list)
+
+
+}
   return (
+    <>
+    <FlightSearchBar startDate1={checkin_date}
+     from1={source}
+     destination1={destination}
+     trip1={trip}
+     category1= {category}
+     adults1={adults}
+     children1= {children}
+     infants1= {infants}
+     youth1={youth}
+     
+     handleSearchData={getChildData}
+
+     />
     <Box sx={{ display: 'flex', flexDirection: 'row', height: '100%',   width: '80%', marginLeft: '10%',  marginRight: '10%',marginTop: '2%',  }}>
-      {/* Left Column - Filters */}
+       
       <Box sx={{ marginTop:'20px', flex: 1, padding: '20px', width: '16%', border: '1px solid #ddd', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
                 cursor: 'pointer', marginBottom : '20px'}}>
         {/* <Typography variant="h6" gutterBottom>Filter by</Typography> */}
@@ -518,7 +607,7 @@ backgroundColor: 'black',  // Set the color of the track (the portion filled by 
           }
           label={airline.name}
           sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }} /> 
-          <Typography variant="body2" color="black"  >${airline.minPrice.units}</Typography>
+          <Typography variant="body2" color="black"  >{airline.count}</Typography>
         </Box>
             ))
 
@@ -646,9 +735,9 @@ backgroundColor: 'black',  // Set the color of the track (the portion filled by 
               <Box sx={{ flex: 1}}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', paddingLeft :'20px' }}>
                   
-                    <Typography variant="body2" color="black"  >{from}</Typography>
+                    <Typography variant="body2" color="black"  >{travelFrom}</Typography>
                       {/* <FlightTakeoffIcon sx={{ margin: '0 5px' }} /> */}
-                       <Typography variant="body2" color="black">{destination}</Typography>
+                       <Typography variant="body2" color="black">{travelTo}</Typography>
                   
                 {/* </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}> */}
@@ -714,6 +803,7 @@ backgroundColor: 'black',  // Set the color of the track (the portion filled by 
       </Box>
       
     </Box>
+    </>
   );
 };
 
